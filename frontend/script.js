@@ -174,7 +174,7 @@ async function payNow() {
 
     // Razorpay configuration
     var razorpay = new Razorpay({
-        key: process.env.RAZORPAY_KEY_ID,
+        key: "rzp_test_JzKAcHzoOzn4Ol",
     });
 
     var data = {
@@ -200,6 +200,10 @@ async function payNow() {
     razorpay.createPayment(data);
 
     razorpay.on('payment.success', function(resp) {
+        // Close the modal
+        closeModal();
+
+        // Show success alert
         swal("Success!", "Your payment is successful", "success");
         $.ajax({
             url: '/checkout/pay-verify',

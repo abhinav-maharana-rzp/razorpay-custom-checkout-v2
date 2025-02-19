@@ -34,5 +34,51 @@ router.post("/create-order", async (req,res) => {
     }
 });
 
+router.post('/create-plan', async (req, res) => {
+  try {
+    const { amount, interval, name } = req.body;  // Amount in INR, interval: monthly/yearly, etc.
+
+    // Create the plan
+    const plan = await razorpay.plans.create({
+      amount: amount * 100,  // Convert to paisa
+      currency: 'INR',
+      interval: interval,    // 'monthly' or 'yearly'
+      item: {
+        name: name,   // Plan name
+        description: `Subscription for ${name} plan`,
+      },
+      total_count: 12, // Number of payments (12 months for example)
+    });
+
+    res.json(plan);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Endpoint to create a subscription
+router.post('/create-subscription', async (req, res) => {
+    try {
+      const { plan_id, customer_email } = req.body;
+  
+      // Create the subscription
+      const subscription = await razorpay.subscriptions.create({
+        plan_id: plan_id,
+        customer_notify: 1,
+        total_count: 12, // Recurring payments for 12 months (Adjust as needed)
+        start_at: Math.floor(Date.now() / 1000),
+        notes: {
+          email: customer_email,
+        },
+      });
+  
+      res.json(subscription);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Internal Server Error');
+    }
+  });
+  
+
 
 module.exports = router;

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Razorpay Subscription</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body class="bg-gray-100">
+  <div class="container mx-auto p-6">
+    <div class="max-w-xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+      <h2 class="text-2xl font-semibold text-center mb-4">Subscribe for a Plan</h2>
+
+      <form id="subscription-form" class="space-y-4">
+        <div>
+          <label class="block text-lg">Plan:</label>
+          <select id="plan" class="w-full p-3 border rounded-md">
+            <option value="plan_id_1">Basic Plan</option>
+            <option value="plan_id_2">Premium Plan</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-lg">Email:</label>
+          <input type="email" id="email" class="w-full p-3 border rounded-md" placeholder="Your Email" required />
+        </div>
+
+        <button type="submit" id="subscribe-btn" class="w-full bg-blue-500 text-white p-3 rounded-md mt-4">Subscribe</button>
+      </form>
+
+      <!-- Create plan section -->
+      <button id="create-plan-btn" class="w-full bg-green-500 text-white p-3 rounded-md mt-4">
+        Create a New Plan
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Handle plan creation
+    document.getElementById('create-plan-btn').addEventListener('click', async () => {
+      const planName = prompt("Enter plan name:");
+      const amount = prompt("Enter plan amount (in INR):");
+      const interval = prompt("Enter interval (monthly/yearly):");
+
+      const response = await fetch('/create-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: planName,
+          amount: parseFloat(amount),
+          interval: interval,
+        }),
+      });
+
+      const plan = await response.json();
+      console.log("Created Plan: ", plan);
+      alert("Plan Created Successfully! Plan ID: " + plan.id);
+    });
+
+    // Handle subscription form submission
+    document.getElementById('subscription-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const planId = document.getElementById('plan').value;
+      const email = document.getElementById('email').value;
+
+      // Call the backend API to create a subscription
+      const response = await fetch('/create-subscription', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          plan_id: planId,
+          customer_email: email,
+        }),
+      });
+
+      const subscription = await response.json();
+
+      // Razorpay Checkout
+      const options = {
+        key: 'rzp_test_JzKAcHzoOzn4Ol',
+        amount: subscription.amount,
+        currency: 'INR',
+        name: 'Razorpay Subscription',
+        description: 'Subscription Plan',
+        image: 'https://example.com/logo.png',
+        order_id: subscription.id,
+        handler: function (response) {
+          alert('Payment Successful');
+          // Handle subscription confirmation (e.g., store data, update UI)
+        },
+        prefill: {
+          email: email,
+        },
+      };
+
+      const rzp1 = new Razorpay(options);
+      rzp1.open();
+    });
+  </script>
+</body>
+</html>

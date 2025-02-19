@@ -220,3 +220,70 @@ async function payNow() {
         swal("Error", "Your payment could not be completed. Please contact support.", "error");
     });
 }
+
+// Handle plan creation
+document.getElementById('create-plan-btn').addEventListener('click', async () => {
+    const planName = prompt("Enter plan name:");
+    const amount = prompt("Enter plan amount (in INR):");
+    const interval = prompt("Enter interval (monthly/yearly):");
+  
+    const response = await fetch(`${API_BASE_URL}/create-plan`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: planName,
+        amount: parseFloat(amount),
+        interval: interval,
+      }),
+    });
+  
+    const plan = await response.json();
+    console.log("Created Plan: ", plan);
+    alert("Plan Created Successfully! Plan ID: " + plan.id);
+  });
+  
+  // Handle subscription form submission
+  document.getElementById('subscription-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const planId = document.getElementById('plan').value;
+    const email = document.getElementById('email').value;
+  
+    // Call the backend API to create a subscription
+    const response = await fetch(`${API_BASE_URL}/create-subscription`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        plan_id: planId,
+        customer_email: email,
+      }),
+    });
+  
+    const subscription = await response.json();
+  
+    // Razorpay Checkout
+    const options = {
+      key: 'rzp_test_JzKAcHzoOzn4Ol',
+      amount: subscription.amount,
+      currency: 'INR',
+      name: 'Razorpay Subscription',
+      description: 'Subscription Plan',
+      image: 'https://example.com/logo.png',
+      order_id: subscription.id,
+      handler: function (response) {
+        alert('Payment Successful');
+        // Handle subscription confirmation (e.g., store data, update UI)
+      },
+      prefill: {
+        email: email,
+      },
+    };
+  
+    const rzp1 = new Razorpay(options);
+    rzp1.open();
+  });
+  

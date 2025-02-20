@@ -40,11 +40,11 @@ router.post('/create-plan', async (req, res) => {
 
     // Create the plan
     const plan = await razorpay.plans.create({
-      amount: amount * 100,  // Convert to paisa
-      currency: 'INR',
-      interval: interval,    // 'monthly' or 'yearly'
+      period: interval,    // 'monthly' or 'yearly'
       item: {
         name: name,   // Plan name
+        amount: amount * 100,  // Convert to paisa
+        currency: 'INR',
         description: `Subscription for ${name} plan`,
       },
       total_count: 12, // Number of payments (12 months for example)
